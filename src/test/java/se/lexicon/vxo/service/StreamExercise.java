@@ -283,10 +283,10 @@ public class StreamExercise {
         //TODO:Write code here
         LocalDate start = LocalDate.of(2020, 1, 1);
         LocalDate end = LocalDate.of(2020, 12, 31);
-        long numOfDaysBetween = ChronoUnit.DAYS.between(start, end) + 1;
+        // long numOfDaysBetween = ChronoUnit.DAYS.between(start, end) + 1;
 
         _2020_dates = Stream.iterate(start, date -> date.plusDays(1))
-                .limit(numOfDaysBetween)
+                .limit(ChronoUnit.DAYS.between(start, end) + 1)
                 .toArray(LocalDate[]::new);
 
 
