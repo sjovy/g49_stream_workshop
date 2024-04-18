@@ -7,8 +7,11 @@ import se.lexicon.vxo.model.PersonDto;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.ToIntFunction;
+import java.util.stream.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,6 +46,7 @@ public class StreamExercise {
         long amount = 0;
 
         //TODO:Write code here
+        amount = people.stream().count();
 
         assertEquals(10000, amount);
     }
@@ -56,6 +60,9 @@ public class StreamExercise {
         int expected = 90;
 
         //TODO:Write code here
+        amount = people.stream()
+               .filter(person -> person.getLastName().equals("Andersson"))
+               .count();
 
         assertEquals(expected, amount);
     }
@@ -69,7 +76,9 @@ public class StreamExercise {
         List<Person> females = null;
 
         //TODO:Write code here
-
+        females = people.stream()
+                .filter(person -> person.getGender() == Gender.FEMALE)
+                .collect(Collectors.toList());
 
         assertNotNull(females);
         assertEquals(expectedSize, females.size());
@@ -84,6 +93,9 @@ public class StreamExercise {
         Set<LocalDate> dates = null;
 
         //TODO:Write code here
+        dates = people.stream()
+              .map(Person::getDateOfBirth)
+              .collect(Collectors.toCollection(TreeSet::new));
 
         assertNotNull(dates);
         assertTrue(dates instanceof TreeSet);
@@ -100,6 +112,10 @@ public class StreamExercise {
         Person[] result = null;
 
         //TODO:Write code here
+        result = people.stream()
+                .filter(person -> person.getFirstName().equals("Erik"))
+                .toArray(Person[]::new);
+
 
         assertNotNull(result);
         assertEquals(expectedLength, result.length);
@@ -115,6 +131,9 @@ public class StreamExercise {
         Optional<Person> optional = null;
 
         //TODO:Write code here
+        optional = people.stream()
+                .filter(person -> person.getPersonId() == 5436)
+                .findFirst();
 
         assertNotNull(optional);
         assertTrue(optional.isPresent());
@@ -131,6 +150,8 @@ public class StreamExercise {
         Optional<Person> optional = null;
 
         //TODO:Write code here
+        optional = people.stream()
+                .min(Comparator.comparing(Person::getDateOfBirth));
 
         assertNotNull(optional);
         assertEquals(expectedBirthDate, optional.get().getDateOfBirth());
@@ -147,6 +168,10 @@ public class StreamExercise {
         List<PersonDto> dtoList = null;
 
         //TODO:Write code here
+        dtoList = people.stream()
+                .filter(person -> person.getDateOfBirth().isBefore(date))
+                .map(person -> new PersonDto(person.getPersonId(), person.getFirstName() + " " + person.getLastName()))
+                .collect(Collectors.toList());
 
         assertNotNull(dtoList);
         assertEquals(expectedSize, dtoList.size());
@@ -165,6 +190,25 @@ public class StreamExercise {
 
         //TODO:Write code here
 
+        Map<String, String> dayOfWeekMap = new HashMap<>();
+        dayOfWeekMap.put("MÅNDAG", "MONDAY");
+        dayOfWeekMap.put("TISDAG", "TUESDAY");
+        dayOfWeekMap.put("ONSDAG", "WEDNESDAY");
+        dayOfWeekMap.put("TORSDAG", "THURSDAY");
+        dayOfWeekMap.put("FREDAG", "FRIDAY");
+        dayOfWeekMap.put("LÖRDAG", "SATURDAY");
+        dayOfWeekMap.put("SÖNDAG", "SUNDAY");
+
+        optional = people.stream()
+                .filter(person -> person.getPersonId() == 5914)
+                .map(person -> {
+                    String dateInSwedish = person.getDateOfBirth().format(DateTimeFormatter.ofPattern("EEEE dd MMMM yyyy", new Locale("sv", "SE"))).toUpperCase();
+                    String dayOfWeekInSwedish = dateInSwedish.split(" ")[0];
+                    String dayOfWeekInEnglish = dayOfWeekMap.get(dayOfWeekInSwedish);
+                    return dateInSwedish.replace(dayOfWeekInSwedish, dayOfWeekInEnglish);
+                })
+                .findFirst();
+
         assertNotNull(optional);
         assertTrue(optional.isPresent());
         assertEquals(expected, optional.get());
@@ -176,12 +220,16 @@ public class StreamExercise {
      */
     @Test
     public void task11() {
-        ToIntFunction<Person> personToAge =
-                person -> Period.between(person.getDateOfBirth(), LocalDate.parse("2019-12-20")).getYears();
+        ToIntFunction<Person> personToAge = person ->
+                Period.between(person.getDateOfBirth(), LocalDate.parse("2019-12-20")).getYears();
         double expected = 54.42;
         double averageAge = 0;
 
         //TODO:Write code here
+        averageAge = people.stream()
+                .mapToInt(personToAge)
+                .average()
+                .getAsDouble();
 
         assertTrue(averageAge > 0);
         assertEquals(expected, averageAge, .01);
@@ -197,6 +245,12 @@ public class StreamExercise {
         String[] result = null;
 
         //TODO:Write code here
+        result = people.stream()
+                .map(Person::getFirstName)
+                .filter(name -> name.equalsIgnoreCase(new StringBuilder(name).reverse().toString()))
+                .distinct()
+                .sorted()
+                .toArray(String[]::new);
 
         assertNotNull(result);
         assertArrayEquals(expected, result);
@@ -211,6 +265,9 @@ public class StreamExercise {
         Map<String, List<Person>> personMap = null;
 
         //TODO:Write code here
+        personMap = people.stream()
+                .collect(Collectors.groupingBy(Person::getLastName));
+
 
         assertNotNull(personMap);
         assertEquals(expectedSize, personMap.size());
@@ -224,6 +281,13 @@ public class StreamExercise {
         LocalDate[] _2020_dates = null;
 
         //TODO:Write code here
+        LocalDate start = LocalDate.of(2020, 1, 1);
+        LocalDate end = LocalDate.of(2020, 12, 31);
+        long numOfDaysBetween = ChronoUnit.DAYS.between(start, end) + 1;
+
+        _2020_dates = Stream.iterate(start, date -> date.plusDays(1))
+                .limit(numOfDaysBetween)
+                .toArray(LocalDate[]::new);
 
 
         assertNotNull(_2020_dates);
